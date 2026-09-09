@@ -41,7 +41,7 @@ export function tourSteps(lang: Lang): TourStep[] {
       },
       {
         title: "想搞爆它，進沙盒",
-        body: "灌入、抽走、或一鍵協調擠兌。白皮書說 run 會自己死掉——這裡可以自己按一次看規則有沒有守住。",
+        body: "灌入、抽走、或一鍵協調擠兌。白皮書沒答應銀行不會死，只答應門口會定價。自己按一次，看恆等式有沒有守住。",
         page: "machine",
         mode: "sandbox",
         spot: "hands",
@@ -86,7 +86,7 @@ export function tourSteps(lang: Lang): TourStep[] {
     },
     {
       title: "To break it, open Sandbox",
-      body: "Push, pull, or fire a coordinated run. The paper says a run dies on its own. Press it once and see if the rules hold.",
+      body: "Push, pull, or fire a coordinated run. The paper never promised the bank survives — only that the door is priced. Press it once and see if the identities hold.",
       page: "machine",
       mode: "sandbox",
       spot: "hands",

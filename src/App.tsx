@@ -92,11 +92,15 @@ export function App() {
       return;
     }
     const u = new SpeechSynthesisUtterance(t.voiceIntro);
-    u.lang = lang === "zh" ? "zh-TW" : "en-US";
     u.rate = lang === "zh" ? 1.2 : 1.18;
     u.pitch = 1;
     const voice = pickVoice(lang);
-    if (voice) u.voice = voice;
+    if (voice) {
+      u.voice = voice;
+      u.lang = voice.lang;
+    } else {
+      u.lang = lang === "zh" ? "zh-TW" : "en-GB";
+    }
     u.onend = () => setTalking(false);
     u.onerror = () => setTalking(false);
     setTalking(true);
