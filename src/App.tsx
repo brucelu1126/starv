@@ -25,9 +25,38 @@ const SEEN = "starv-seen";
 function pickDaniel() {
   const all = speechSynthesis.getVoices();
   return (
-    all.find((v) => /daniel/i.test(v.name) && v.lang.toLowerCase().startsWith("en-gb")) ??
-    all.find((v) => /daniel/i.test(v.name))
+    all.find((v) => v.name === "Daniel" && v.lang.toLowerCase().startsWith("en-gb")) ??
+    all.find((v) => v.name === "Daniel") ??
+    all.find((v) => /google uk english male/i.test(v.name))
   );
+}
+
+function speakIntro(onDone: () => void) {
+  let started = false;
+  const start = () => {
+    if (started) return true;
+    const voice = pickDaniel();
+    if (!voice) return false;
+    started = true;
+    const u = new SpeechSynthesisUtterance(copy.en.voiceIntro);
+    u.voice = voice;
+    u.lang = "en-GB";
+    u.rate = 1.3;
+    u.pitch = 1;
+    u.onend = onDone;
+    u.onerror = onDone;
+    speechSynthesis.speak(u);
+    return true;
+  };
+  if (start()) return;
+  const retry = () => {
+    if (start()) speechSynthesis.removeEventListener("voiceschanged", retry);
+  };
+  speechSynthesis.addEventListener("voiceschanged", retry);
+  speechSynthesis.getVoices();
+  window.setTimeout(() => {
+    if (!start()) onDone();
+  }, 400);
 }
 
 export function App() {
@@ -74,16 +103,8 @@ export function App() {
       setTalking(false);
       return;
     }
-    const u = new SpeechSynthesisUtterance(copy.en.voiceIntro);
-    u.rate = 1.3;
-    u.pitch = 1;
-    u.lang = "en-GB";
-    const voice = pickDaniel();
-    if (voice) u.voice = voice;
-    u.onend = () => setTalking(false);
-    u.onerror = () => setTalking(false);
     setTalking(true);
-    speechSynthesis.speak(u);
+    speakIntro(() => setTalking(false));
   }
 
   function reset(next = params, scene = scenario) {
