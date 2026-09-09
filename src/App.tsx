@@ -23,21 +23,21 @@ type Mode = "observer" | "sandbox";
 const SEEN = "starv-seen";
 
 const VOICE_SKIP =
-  /alex|daniel|fred|ralph|albert|grandpa|grandma|junior|whisper|zarvox|boing|organ|trinoids|bubbles|hysterical|rocko|eddy|reed|sandy|li-?mu|yun(yang|xi|jian)|kangkang|\bmale\b/i;
+  /samantha|karen|allison|ava\b|aria|jenny|siri|flo|shelley|moira|zira|sonia|kathy|tessa|美佳|婷婷|ting-?ting|mei-?jia|grandma|grandpa|junior|sandy|fred|albert|ralph|whisper|zarvox|boing|organ|trinoids|bubbles|hysterical|jester|superstar|wobble|bells|bahh|bad news|good news|rocko|princess|cellos/i;
 
 function pickVoice(lang: Lang) {
   const prefix = lang === "zh" ? "zh" : "en";
-  const preferLang = lang === "zh" ? "zh-tw" : "en-us";
+  const preferLang = lang === "zh" ? "zh-tw" : "en-gb";
   const keys =
     lang === "zh"
-      ? ["美佳", "mei-jia", "meijia", "婷婷", "ting"]
-      : ["samantha", "siri", "ava", "allison", "aria", "jenny", "karen", "flo", "shelley", "moira"];
+      ? ["reed", "eddy", "yunyang", "yunxi"]
+      : ["daniel", "reed", "eddy", "alex", "rishi", "guy", "davis", "andrew"];
   const pool = speechSynthesis.getVoices().filter((v) => v.lang.toLowerCase().startsWith(prefix) && !VOICE_SKIP.test(v.name));
   let best: SpeechSynthesisVoice | undefined;
   let bestScore = -1;
   for (const v of pool) {
     const n = v.name.toLowerCase();
-    const ki = keys.findIndex((k) => n.includes(k) || v.name.includes(k));
+    const ki = keys.findIndex((k) => n.includes(k));
     const score = (ki === -1 ? 0 : (keys.length - ki) * 10) + (v.lang.toLowerCase().startsWith(preferLang) ? 2 : 0);
     if (score > bestScore) {
       best = v;
@@ -93,8 +93,8 @@ export function App() {
     }
     const u = new SpeechSynthesisUtterance(t.voiceIntro);
     u.lang = lang === "zh" ? "zh-TW" : "en-US";
-    u.rate = lang === "zh" ? 1.06 : 1.02;
-    u.pitch = 1.08;
+    u.rate = lang === "zh" ? 1.2 : 1.18;
+    u.pitch = 1;
     const voice = pickVoice(lang);
     if (voice) u.voice = voice;
     u.onend = () => setTalking(false);
