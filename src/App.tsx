@@ -22,29 +22,12 @@ type Mode = "observer" | "sandbox";
 
 const SEEN = "starv-seen";
 
-const VOICE_SKIP =
-  /samantha|karen|allison|ava\b|aria|jenny|siri|flo|shelley|moira|zira|sonia|kathy|tessa|美佳|婷婷|ting-?ting|mei-?jia|grandma|grandpa|junior|sandy|fred|albert|ralph|whisper|zarvox|boing|organ|trinoids|bubbles|hysterical|jester|superstar|wobble|bells|bahh|bad news|good news|rocko|princess|cellos/i;
-
-function pickVoice(lang: Lang) {
-  const prefix = lang === "zh" ? "zh" : "en";
-  const preferLang = lang === "zh" ? "zh-tw" : "en-gb";
-  const keys =
-    lang === "zh"
-      ? ["reed", "eddy", "yunyang", "yunxi"]
-      : ["daniel", "reed", "eddy", "alex", "rishi", "guy", "davis", "andrew"];
-  const pool = speechSynthesis.getVoices().filter((v) => v.lang.toLowerCase().startsWith(prefix) && !VOICE_SKIP.test(v.name));
-  let best: SpeechSynthesisVoice | undefined;
-  let bestScore = -1;
-  for (const v of pool) {
-    const n = v.name.toLowerCase();
-    const ki = keys.findIndex((k) => n.includes(k));
-    const score = (ki === -1 ? 0 : (keys.length - ki) * 10) + (v.lang.toLowerCase().startsWith(preferLang) ? 2 : 0);
-    if (score > bestScore) {
-      best = v;
-      bestScore = score;
-    }
-  }
-  return best ?? pool[0];
+function pickDaniel() {
+  const all = speechSynthesis.getVoices();
+  return (
+    all.find((v) => /daniel/i.test(v.name) && v.lang.toLowerCase().startsWith("en-gb")) ??
+    all.find((v) => /daniel/i.test(v.name))
+  );
 }
 
 export function App() {
@@ -91,16 +74,12 @@ export function App() {
       setTalking(false);
       return;
     }
-    const u = new SpeechSynthesisUtterance(t.voiceIntro);
-    u.rate = lang === "zh" ? 1.2 : 1.18;
+    const u = new SpeechSynthesisUtterance(copy.en.voiceIntro);
+    u.rate = 1.3;
     u.pitch = 1;
-    const voice = pickVoice(lang);
-    if (voice) {
-      u.voice = voice;
-      u.lang = voice.lang;
-    } else {
-      u.lang = lang === "zh" ? "zh-TW" : "en-GB";
-    }
+    u.lang = "en-GB";
+    const voice = pickDaniel();
+    if (voice) u.voice = voice;
     u.onend = () => setTalking(false);
     u.onerror = () => setTalking(false);
     setTalking(true);
