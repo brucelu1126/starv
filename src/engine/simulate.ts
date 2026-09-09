@@ -256,7 +256,7 @@ export function stepEpoch(
   const why: EpochTrace["why"] = {
     read_Fn: `F_n = ${fmt(grossIn)} − ${fmt(grossOut)} = ${fmt(Fn)} ETH. Hook counts ETH, not volume. §4.1`,
     regime: `sign(F_n)=${Fn > 0 ? "+" : "≤0"} → ${regime.toUpperCase()}. Fee routing uses this epoch only. §4 / §5`,
-    signal: `signal_n = F_{n-1}+F_{n-2} = ${fmt(signal)}. Issuance ignores this hour's spike. §4.1`,
+    signal: `signal_n = F_{n-1}+F_{n-2} = ${fmt(signal)}. Issuance ignores this epoch's spike. §4.1`,
     m_update: `m ${mBefore.toFixed(2)} → ${mNext.m.toFixed(2)} (${mNext.branch}). Raise is earned; cut is immediate. §5`,
     issue: `I_n = ${p.baseIssuancePerDay} × ${p.epochDays} × ${mBefore.toFixed(2)} = ${issued.toFixed(0)} to ${s.branches.toFixed(0)} branches. §5.1`,
     fee_split: `${fmt(feeEth + auctionEth)} ETH × 70/15/15 → vault ${fmt(proto.vault)} / POL ${fmt(proto.pol)} / team ${fmt(proto.team)}. §11`,

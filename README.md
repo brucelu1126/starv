@@ -42,4 +42,4 @@ Launch numbers are blank in §14. Every knob in the sandbox is tagged:
 ## Two layers
 
 - **Observer** — play the tape, speed time
-- **Sandbox** — inject flow, force 20% / 40% seven-day runs, twist unpublished params, open the branch the machine took this epoch
+- **Sandbox** — inject flow, force 20% / 40% seven-day runs on Machine or Defence, twist unpublished params, open the branch the machine took this epoch

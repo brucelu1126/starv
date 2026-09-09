@@ -174,9 +174,9 @@ export function defaultParams(): SimParams {
     },
     ticksPerEpoch: {
       value: 24,
-      source: "wp",
-      section: "§11",
-      note: "Hourly ticks. Epoch assumed 1 day so 24 ticks",
+      source: "assumed",
+      section: "§11.1 / §14",
+      note: "Hourly ticks are wp. 24 follows from the assumed 1-day epoch",
     },
     signalLookback: {
       value: 2,

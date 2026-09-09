@@ -4,9 +4,11 @@
  */
 import { defaultParams, values } from "./params.ts";
 import {
+  bounty,
   buybackTick,
   exitPressure,
   issuance,
+  licensePrice,
   nextMultiplier,
   policySignal,
   regimeOf,
@@ -16,7 +18,7 @@ import {
   supplies,
 } from "./formulas.ts";
 import { armRun, runN } from "./simulate.ts";
-import { fitCam, iso } from "../iso.ts";
+import { easeOrbit, fitCam, iso } from "../iso.ts";
 
 function assert(cond: unknown, msg: string) {
   if (!cond) {
@@ -78,6 +80,12 @@ assert(buybackTick(5, 1000, p) === 0.5, "tick bound by 0.10V when vault is thin"
 const sup = supplies(100_000_000, 5, 2, 1_000_000_000);
 assert(sup.circ === 100_000_003 && sup.max === 999_999_998, "§3.1 / §3.2 identities");
 
+assert(Math.abs(licensePrice(0, 8, 2) - 8) < 1e-12, "§7.1 license open is P_start");
+assert(Math.abs(licensePrice(24, 8, 2) - 2) < 1e-12, "§7.1 license at 24h is floor");
+assert(Math.abs(licensePrice(12, 8, 2) - 4) < 1e-12, "§7.1 mid-day is the geometric mean");
+assert(bounty(10_000_000, p) === 100_000, "§10 bounty caps at 100k");
+assert(bounty(1_000, p) === 20, "§10 bounty is 2% under the cap");
+
 const calm = runN(defaultParams(), "expansion", 8);
 const firstRaiseAt = calm.tape.findIndex((t) => t.mBranch === "raise");
 assert(firstRaiseAt >= 2, "m cannot raise before two inflow epochs sit in the lookback");
@@ -136,6 +144,10 @@ assert(
   ].every((p) => p.x >= 20 && p.x <= 380 && p.y >= 20 && p.y <= 280),
   "iso fit stays inside after a 90° yaw",
 );
+
+const o = { yaw: 0, pitch: 0, tx: 1, ty: 0 };
+easeOrbit(o, 1 / 60);
+assert(o.yaw > 0 && o.yaw < 0.04, "orbit eases a small step per frame");
 
 if (process.exitCode) {
   console.error("\ncheck failed");

@@ -82,7 +82,7 @@ export function Identities() {
         <span>§5</span>
       </li>
       <li>
-        <code>fee ∝ min(1, P/P_sat)² → 35%</code>
+        <code>fee ∝ min(1, P/P_sat)²</code>
         <span>§9.1</span>
       </li>
       <li>

@@ -119,7 +119,7 @@ export function Machine({
     fit();
     const ro = new ResizeObserver(fit);
     ro.observe(host);
-    const detach = attachOrbit(canvas, orbit.current);
+    const detach = attachOrbit(host, orbit.current);
 
     const paths = (cam: Cam) => ({
       in: [iso(-1.2, 5.6, 1.1, cam), iso(6.2, 5.6, 1.4, cam)],
@@ -151,7 +151,7 @@ export function Machine({
       prev = now;
       const W = canvas.clientWidth;
       const H = canvas.clientHeight;
-      easeOrbit(orbit.current);
+      easeOrbit(orbit.current, dt);
       const cam = fitCam(WORLD, W, H, 56, orbit.current, PIVOT);
       const e = lastRef.current;
       const regime = e?.regime ?? "expansion";
@@ -315,19 +315,7 @@ export function Machine({
   }
 
   return (
-    <div
-      ref={wrap}
-      className={`machine hall ${playing ? "is-live" : ""} ${last?.regime ?? "expansion"}`}
-      onPointerMove={(e) => {
-        const r = e.currentTarget.getBoundingClientRect();
-        orbit.current.tx = ((e.clientX - r.left) / r.width - 0.5) * Math.PI * 2;
-        orbit.current.ty = ((e.clientY - r.top) / r.height - 0.5) * -0.45;
-      }}
-      onPointerLeave={() => {
-        orbit.current.tx = 0;
-        orbit.current.ty = 0;
-      }}
-    >
+    <div ref={wrap} className={`machine hall ${playing ? "is-live" : ""} ${last?.regime ?? "expansion"}`}>
       <canvas ref={cvs} className="machine-3d" role="img" aria-label="Bank machine" onClick={hit} />
     </div>
   );

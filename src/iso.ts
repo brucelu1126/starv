@@ -60,9 +60,18 @@ export function freshOrbit(): Orbit {
   return { yaw: 0, pitch: 0, tx: 0, ty: 0 };
 }
 
-export function easeOrbit(o: Orbit, k = 0.14) {
-  o.yaw += (o.tx - o.yaw) * k;
-  o.pitch += (o.ty - o.pitch) * k;
+/** ~0.4s time constant, capped so a slam still takes a couple of seconds. */
+export function easeOrbit(o: Orbit, dt = 1 / 60) {
+  const k = 1 - Math.exp(-dt / 0.42);
+  const cap = 0.95 * dt;
+  let dy = (o.tx - o.yaw) * k;
+  let dp = (o.ty - o.pitch) * k;
+  if (dy > cap) dy = cap;
+  else if (dy < -cap) dy = -cap;
+  if (dp > cap) dp = cap;
+  else if (dp < -cap) dp = -cap;
+  o.yaw += dy;
+  o.pitch += dp;
 }
 
 /** Pointer X = 360° yaw, Y = a little pitch. Leaves ease back to rest. */
@@ -70,7 +79,7 @@ export function attachOrbit(el: HTMLElement, o: Orbit) {
   const move = (e: PointerEvent) => {
     const r = el.getBoundingClientRect();
     o.tx = ((e.clientX - r.left) / r.width - 0.5) * Math.PI * 2;
-    o.ty = ((e.clientY - r.top) / r.height - 0.5) * -0.45;
+    o.ty = ((e.clientY - r.top) / r.height - 0.5) * -0.32;
   };
   const leave = () => {
     o.tx = 0;

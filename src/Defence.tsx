@@ -101,7 +101,7 @@ export function Defence({ last, params, t }: { last: EpochTrace | null; params: 
     fit();
     const ro = new ResizeObserver(fit);
     ro.observe(host);
-    const detach = attachOrbit(canvas, orbit.current);
+    const detach = attachOrbit(host, orbit.current);
 
     const tick = (now: number) => {
       const dt = Math.min(0.05, (now - prev) / 1000);
@@ -109,7 +109,7 @@ export function Defence({ last, params, t }: { last: EpochTrace | null; params: 
       pulse += dt;
       const W = canvas.clientWidth;
       const H = canvas.clientHeight;
-      easeOrbit(orbit.current);
+      easeOrbit(orbit.current, dt);
       const cam = fitCam(WORLD, W, H, 72, orbit.current, PIVOT);
       const f = feeRef.current;
       const doorH = 1.4 + f * 4.2;
@@ -222,19 +222,7 @@ export function Defence({ last, params, t }: { last: EpochTrace | null; params: 
         <p>{t.defSub}</p>
       </header>
 
-      <div
-        ref={wrap}
-        className="door-stage"
-        onPointerMove={(e) => {
-          const r = e.currentTarget.getBoundingClientRect();
-          orbit.current.tx = ((e.clientX - r.left) / r.width - 0.5) * Math.PI * 2;
-          orbit.current.ty = ((e.clientY - r.top) / r.height - 0.5) * -0.45;
-        }}
-        onPointerLeave={() => {
-          orbit.current.tx = 0;
-          orbit.current.ty = 0;
-        }}
-      >
+      <div ref={wrap} className="door-stage">
         <canvas ref={cvs} className="door-canvas" aria-label="priced door" />
       </div>
 
