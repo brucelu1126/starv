@@ -212,8 +212,8 @@ export function Machine({
         poly(ctx, f.right, on ? right : "#12161c");
         poly(ctx, f.left, on ? left : "#161b22");
         if (on || litRef.current === b.id) {
-          ctx.strokeStyle = "#d4b483";
-          ctx.lineWidth = 1.4;
+          ctx.strokeStyle = "rgba(255,255,255,0.45)";
+          ctx.lineWidth = 1.2;
           ctx.stroke();
         }
         return f.mid;
@@ -258,8 +258,8 @@ export function Machine({
       }
 
       ctx.textAlign = "center";
-      ctx.font = "11px 'IBM Plex Mono', monospace";
-      ctx.fillStyle = "#e6c36a";
+      ctx.font = "11px Inter, ui-sans-serif, sans-serif";
+      ctx.fillStyle = "#e8c872";
       ctx.fillText("EXPANSION", iso(2.5, 0.4, 2.8, cam).x, iso(2.5, 0.4, 2.8, cam).y);
       ctx.fillStyle = "#e35d4a";
       ctx.fillText("CONTRACTION", iso(13.5, 0.4, 2.8, cam).x, iso(13.5, 0.4, 2.8, cam).y);
@@ -271,13 +271,13 @@ export function Machine({
       ctx.fillText("RATCHET", iso(3.5, 9.6, 2.0, cam).x, iso(3.5, 9.6, 2.0, cam).y + 14);
       ctx.fillText(`EXIT ${(fee * 100).toFixed(1)}%`, iso(12.7, 9.6, 2.3, cam).x, iso(12.7, 9.6, 2.3, cam).y + 14);
 
-      ctx.fillStyle = "#f0d7a4";
-      ctx.font = "13px 'IBM Plex Mono', monospace";
+      ctx.fillStyle = "#fff";
+      ctx.font = "600 13px Inter, ui-sans-serif, sans-serif";
       ctx.fillText(`${m.toFixed(2)}×`, iso(3.5, 9.3, 1.9, cam).x, iso(3.5, 9.3, 1.9, cam).y);
-      ctx.font = "600 22px 'Instrument Serif', serif";
+      ctx.font = "600 22px Inter, ui-sans-serif, sans-serif";
       ctx.fillStyle = F >= 0 ? "#3ecf8e" : "#e35d4a";
       ctx.fillText(`${F >= 0 ? "+" : ""}${F.toFixed(2)}`, hook.x, hook.y - 4);
-      ctx.font = "10px 'IBM Plex Mono', monospace";
+      ctx.font = "10px Inter, ui-sans-serif, sans-serif";
       ctx.fillStyle = "#8a93a0";
       ctx.fillText("HOOK  Fₙ ETH", hook.x, hook.y + 14);
       ctx.fillStyle = regime === "expansion" ? "#3ecf8e" : "#e35d4a";

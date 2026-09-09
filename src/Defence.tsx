@@ -217,14 +217,13 @@ export function Defence({ last, params, t }: { last: EpochTrace | null; params: 
 
   return (
     <section className="defence door-page">
-      <header>
-        <h2>{t.defTitle}</h2>
-        <p>{t.defSub}</p>
+      <header className="page-head">
+        <div>
+          <h2>{t.defTitle}</h2>
+          <span className="handle">{t.defence}</span>
+          <p>{t.defSub}</p>
+        </div>
       </header>
-
-      <div ref={wrap} className="door-stage">
-        <canvas ref={cvs} className="door-canvas" aria-label="priced door" />
-      </div>
 
       <div className="door-read">
         <div className="door-num leave">
@@ -239,6 +238,10 @@ export function Defence({ last, params, t }: { last: EpochTrace | null; params: 
           <b>{stay.toLocaleString(undefined, { maximumFractionDigits: 0 })}</b>
           <span>{t.toStayers}</span>
         </div>
+      </div>
+
+      <div ref={wrap} className="door-stage">
+        <canvas ref={cvs} className="door-canvas" aria-label="priced door" />
       </div>
 
       <label className="pressure">

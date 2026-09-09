@@ -34,7 +34,7 @@ export const SPEC: SpecRow[] = [
   },
   {
     id: "fast-fees",
-    rule: "Fee routing moves on sign(F_n) alone. Defense is the fast lever.",
+    rule: "Fee routing moves on sign(F_n) alone. Defence is the fast lever.",
     ruleZh: "Fee 路由只看 sign(F_n)。防衛是快槓桿。",
     section: "§4 / §5",
     impl: "regimeOf(F_n)",
@@ -123,7 +123,7 @@ export const SPEC: SpecRow[] = [
   {
     id: "never-pause",
     rule: "Withdrawals are never paused or queued. Price is the only control.",
-    ruleZh: "任何費率都不暫停、不排隊。唯一控制是價格。",
+    ruleZh: "提款從不暫停、不排隊。唯一控制是價格。",
     section: "§9",
     impl: "exits always execute",
     source: "wp",

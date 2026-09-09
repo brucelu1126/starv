@@ -19,7 +19,7 @@ export function tourSteps(lang: Lang): TourStep[] {
         spot: "machine",
       },
       {
-        title: "上面只有三頁",
+        title: "左邊只有三頁",
         body: "機台＝看銀行怎麼走。防衛＝擠兌時跑的人付給留下的人多少。規格＝公式對哪一節白皮書。先留在機台就好。",
         page: "machine",
         mode: "observer",
@@ -34,7 +34,7 @@ export function tourSteps(lang: Lang): TourStep[] {
       },
       {
         title: "點零件，看為什麼是這個數字",
-        body: "點機台或下面 Fₙ／regime／m／exit。旁邊會寫這一紀走了哪條分支，以及對應的白皮書公式。",
+        body: "點機台會跳到「為什麼」。Fₙ／regime／m／exit 對應白皮書公式，以及這一紀走了哪條分支。",
         page: "machine",
         mode: "observer",
         spot: "why",
@@ -65,7 +65,7 @@ export function tourSteps(lang: Lang): TourStep[] {
     },
     {
       title: "Three pages, that's it",
-      body: "Machine = watch the bank. Defence = what leavers pay stayers in a run. Spec = formula → whitepaper section. Stay on Machine first.",
+      body: "Machine = watch the bank. Defence = what leavers pay stayers in a run. Spec = formula → whitepaper section. Stay on Machine first. The three pages live in the left rail.",
       page: "machine",
       mode: "observer",
       spot: "nav",
@@ -79,7 +79,7 @@ export function tourSteps(lang: Lang): TourStep[] {
     },
     {
       title: "Click a part. See why the number is that number.",
-      body: "Hit the machine or Fₙ / regime / m / exit. The card shows which branch this epoch took, and the formula from the paper.",
+      body: "Click a part of the machine — it opens Why. Fₙ / regime / m / exit show which branch this epoch took, and the formula from the paper.",
       page: "machine",
       mode: "observer",
       spot: "why",

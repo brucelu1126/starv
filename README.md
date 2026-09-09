@@ -1,29 +1,50 @@
 # STARV
 
+Unofficial spec bench for [The Standard Reserve](https://www.standardreserve.xyz/whitepaper/).
+Not affiliated. Community demo by [@brucelolzz](https://x.com/brucelolzz).
+
 Live: https://starv-coral.vercel.app  
 Repo: https://github.com/brucelu1126/starv
 
-Unofficial [Standard Reserve](https://www.standardreserve.xyz/whitepaper/) spec bench.
-Not affiliated. The paper is a design overview, not an implementation spec.
+The paper is a design overview, not an implementation spec. This repo exists to **force a 7-day run** and check whether the identities in the whitepaper still hold.
 
-The point of this repo is not a story. It is to let you **force a 7-day run** and check whether the identities in the whitepaper still hold.
+## Run it
 
 ```bash
 npm i
-npm run check    # formula identities
-npm run dev
+npm run check    # formulas — must print "all identities held"
+npm run dev      # http://localhost:5173
 ```
 
-## What is whitepaper vs assumed
+Node 22+ (the check script uses type stripping). No extra env files.
 
-Launch numbers are blank in §14. Every knob in the sandbox is tagged:
+## What you are looking at
+
+Three pages:
+
+- **Machine** — one epoch of the bank. The only policy input is net ETH through the pool.
+- **Defence** — the exit door. Leavers pay a quadratic fee; half burns, half pays whoever stayed.
+- **Spec** — each claim → whitepaper section → a function you can grep.
+
+Two modes (bottom of the left rail):
+
+- **Observer** — watch the tape, speed time. You cannot shove the pool.
+- **Sandbox** — inject ETH, force a 20% or 40% seven-day run, twist numbers the paper left blank.
+
+Click a part of the machine to open **Why** — the formula and the branch that epoch took.
+
+## Whitepaper vs assumed
+
+Launch numbers are blank in §14. Every sandbox knob is tagged:
 
 - **whitepaper** — written as a rule or a number
 - **assumed** — unpublished; the default is a reading, not a claim
 
-`src/engine/spec.ts` maps each rule → section → function.
+`src/engine/spec.ts` is the full map.
 
-## Identities the check file guards
+## Identities `npm run check` guards
+
+These are the ones the live tape has to obey:
 
 | Rule | Section | Function |
 | --- | --- | --- |
@@ -33,13 +54,21 @@ Launch numbers are blank in §14. Every knob in the sandbox is tagged:
 | `I_n = base × d × m_n` | §5.1 | `issuance` |
 | Raise earned one step; cut immediate | §5 | `nextMultiplier` |
 | `P = W / max(D+W, ε)` | §9.1 | `exitPressure` |
-| Quadratic fee, saturates at ceiling | §9.1 | `resolutionFee` |
+| `fee = floor+(ceil−floor)×min(1,P/Psat)²` | §9.1 | `resolutionFee` |
 | Half burn / half stayers | §9 | `splitResolution` |
 | 70 / 15 / 15 | §11 | `splitProtocolEth` |
 | `spend_tick = min(0.10V, 0.002R)` | §11.1 | `buybackTick` |
 | `S_circ = 100M + M − B` | §3.1 | `supplies` |
 
-## Two layers
+Also asserted, not on the live tape: Dutch license curve §7.1, dormant bounty §10.
 
-- **Observer** — play the tape, speed time
-- **Sandbox** — inject flow, force 20% / 40% seven-day runs on Machine or Defence, twist unpublished params, open the branch the machine took this epoch
+## Where to read
+
+| File | What |
+| --- | --- |
+| `src/engine/formulas.ts` | The identities |
+| `src/engine/check.ts` | The asserts |
+| `src/engine/simulate.ts` | One epoch |
+| `src/engine/params.ts` | wp vs assumed knobs |
+| `src/engine/spec.ts` | Rule → section → function |
+| `src/App.tsx` | UI |

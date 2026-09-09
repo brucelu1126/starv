@@ -344,9 +344,12 @@ export function Onboard({
 export function Spec({ t, lang }: { t: Copy; lang: "en" | "zh" }) {
   return (
     <section className="spec">
-      <header>
-        <h2>{t.specTitle}</h2>
-        <p>{t.specSub}</p>
+      <header className="page-head">
+        <div>
+          <h2>{t.specTitle}</h2>
+          <span className="handle">{t.spec}</span>
+          <p>{t.specSub}</p>
+        </div>
       </header>
       <table>
         <thead>
@@ -372,13 +375,6 @@ export function Spec({ t, lang }: { t: Copy; lang: "en" | "zh" }) {
           ))}
         </tbody>
       </table>
-      <p className="muted">
-        <a href="https://github.com/brucelu1126/starv" target="_blank" rel="noreferrer">
-          {t.github}
-        </a>
-        {" · "}
-        <code>npm run check</code>
-      </p>
     </section>
   );
 }
