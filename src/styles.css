@@ -212,7 +212,7 @@ code { color: var(--brass-2); }
 .formula-line { color: var(--mute); font-size: 12px; }
 .formula-line code { display: block; margin-top: 6px; }
 
-.tour-btn { margin-right: 8px; }
+.tour-row { display: flex; gap: 4px; margin-right: 8px; }
 .spot {
   position: relative;
   z-index: 45;

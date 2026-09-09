@@ -56,6 +56,10 @@ const en = {
   skipTour: "Skip",
   doneTour: "Got it",
   replayTour: "Tour",
+  voice: "Voice",
+  voiceStop: "Stop",
+  voiceIntro:
+    "This is an unofficial spec bench for The Standard Reserve. The bank has one signal: net ETH through the pool. F n equals ETH in minus ETH out. Issuance moves on the last two epochs. Fees flip on this epoch's sign — expansion buys gold, contraction buys back and burns. A run never pauses withdrawals. The door is priced with a quadratic fee. Half burns. Half pays whoever stayed. Observer watches. Sandbox lets you force a twenty or forty percent seven-day run and check whether those identities still hold.",
   moreParams: "Advanced",
   startSandbox: "Open the sandbox",
   defTitle: "Leavers pay stayers",
@@ -146,6 +150,10 @@ const zh: typeof en = {
   skipTour: "跳過",
   doneTour: "開始看",
   replayTour: "導覽",
+  voice: "語音",
+  voiceStop: "停止",
+  voiceIntro:
+    "這是 Standard Reserve 的非正式規格工作台。銀行只看一個訊號：池子的淨 ETH。F n 等於買入 ETH 減賣出 ETH。發行看前兩期加總。Fee 路由看當期正負：擴張買金，收縮回購燒毀。擠兌從不暫停提款。門口用二次曲線定價。一半燒毀，一半付給留下的人。觀察模式只能看。沙盒可以強制百分之二十或四十的七日擠兌，檢查這些恆等式還能不能站住。",
   moreParams: "進階",
   startSandbox: "打開沙盒",
   defTitle: "跑的人付錢給留下的人",

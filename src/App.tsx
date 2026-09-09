@@ -34,6 +34,7 @@ export function App() {
   const [lit, setLit] = useState<BranchId>("read_Fn");
   const [playing, setPlaying] = useState(true);
   const [speed, setSpeed] = useState(1);
+  const [talking, setTalking] = useState(false);
   const stateRef = useRef(genesisState(values(defaultParams())));
   const t = copy[lang];
   const p = useMemo(() => values(params), [params]);
@@ -50,7 +51,34 @@ export function App() {
   useEffect(() => {
     localStorage.setItem("starv-lang", lang);
     document.documentElement.lang = lang === "zh" ? "zh-Hant" : "en";
+    speechSynthesis.cancel();
+    setTalking(false);
   }, [lang]);
+
+  useEffect(() => {
+    speechSynthesis.getVoices();
+    return () => speechSynthesis.cancel();
+  }, []);
+
+  function toggleVoice() {
+    if (talking) {
+      speechSynthesis.cancel();
+      setTalking(false);
+      return;
+    }
+    const u = new SpeechSynthesisUtterance(t.voiceIntro);
+    u.lang = lang === "zh" ? "zh-TW" : "en-US";
+    u.rate = lang === "zh" ? 1 : 0.95;
+    const want = lang === "zh" ? "zh" : "en";
+    const voice =
+      speechSynthesis.getVoices().find((v) => v.lang.toLowerCase().startsWith(lang === "zh" ? "zh-tw" : "en-us")) ??
+      speechSynthesis.getVoices().find((v) => v.lang.toLowerCase().startsWith(want));
+    if (voice) u.voice = voice;
+    u.onend = () => setTalking(false);
+    u.onerror = () => setTalking(false);
+    setTalking(true);
+    speechSynthesis.speak(u);
+  }
 
   function reset(next = params, scene = scenario) {
     stateRef.current = genesisState(values(next));
@@ -167,9 +195,19 @@ export function App() {
             </button>
           ))}
         </nav>
-        <button type="button" className="tour-btn" onClick={() => setGuide(0)}>
-          {t.replayTour}
-        </button>
+        <div className="tour-row">
+          <button type="button" className="tour-btn" onClick={() => setGuide(0)}>
+            {t.replayTour}
+          </button>
+          <button
+            type="button"
+            className={`tour-btn ${talking ? "on" : ""}`}
+            aria-pressed={talking}
+            onClick={toggleVoice}
+          >
+            {talking ? t.voiceStop : t.voice}
+          </button>
+        </div>
         <div className={`modes ${guideStep?.spot === "modes" ? "spot" : ""}`} data-tour="modes">
           <button
             type="button"
