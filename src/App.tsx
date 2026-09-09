@@ -13,9 +13,9 @@ import {
 import { Machine } from "./Machine.tsx";
 import { Defence } from "./Defence.tsx";
 import { EpochRail, Identities, ParamsPanel, Spec, StateStrip, WhyCard } from "./panels.tsx";
+import { TourCard, tourSteps } from "./Tour.tsx";
 
 const REPO = "https://github.com/brucelu1126/starv";
-import { TourCard, tourSteps } from "./Tour.tsx";
 
 type Page = "machine" | "defence" | "spec";
 type Mode = "observer" | "sandbox";
@@ -82,7 +82,7 @@ export function App() {
   }, [params, scenario]);
 
   useEffect(() => {
-    if (!playing || page !== "machine") return;
+    if (!playing || (page !== "machine" && page !== "defence")) return;
     const id = window.setInterval(() => tick(), 1400 / speed);
     return () => window.clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -90,6 +90,52 @@ export function App() {
 
   const last = tape.find((e) => e.n === selected) ?? tape.at(-1) ?? null;
   const dead = last !== null && last.D < p.startInternal * 0.05;
+  const defLast = tape.find((e) => e.n === selected) ?? [...tape].reverse().find((e) => e.withdrawn > 0) ?? last;
+
+  const hands = (
+    <div className={`hands ${guideStep?.spot === "hands" ? "spot" : ""}`} data-tour="hands">
+      <button
+        type="button"
+        onClick={() => {
+          stateRef.current = armInject(stateRef.current, 40, 0);
+          tick();
+        }}
+      >
+        {t.injectIn} +40
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          stateRef.current = armInject(stateRef.current, 0, 40);
+          tick();
+        }}
+      >
+        {t.injectOut} −40
+      </button>
+      <button
+        type="button"
+        className="danger"
+        onClick={() => {
+          stateRef.current = armRun(stateRef.current, 0.2, 7);
+          setPlaying(true);
+          tick();
+        }}
+      >
+        {t.force20}
+      </button>
+      <button
+        type="button"
+        className="danger"
+        onClick={() => {
+          stateRef.current = armRun(stateRef.current, 0.4, 7);
+          setPlaying(true);
+          tick();
+        }}
+      >
+        {t.force40}
+      </button>
+    </div>
+  );
 
   return (
     <div className={`app ${mode}`}>
@@ -149,13 +195,27 @@ export function App() {
         </div>
       </header>
 
-      {page === "defence" && (
-        <Defence
-          last={tape.find((e) => e.n === selected) ?? [...tape].reverse().find((e) => e.withdrawn > 0) ?? last}
-          params={params}
-          t={t}
-        />
-      )}
+      {page === "defence" &&
+        (mode === "sandbox" ? (
+          <div className="work">
+            <div className="stage">
+              <Identities />
+              <Defence last={defLast} params={params} t={t} />
+              {hands}
+              {last && last.withdrawn > 0 && (
+                <p className={`verdict ${dead ? "bad" : "ok"}`}>
+                  <b>{t.died}</b> {dead ? t.diedYes : t.diedNo}
+                </p>
+              )}
+            </div>
+            <ParamsPanel params={params} onChange={setParams} t={t} />
+          </div>
+        ) : (
+          <>
+            <Identities />
+            <Defence last={defLast} params={params} t={t} />
+          </>
+        ))}
       {page === "spec" && <Spec t={t} lang={lang} />}
 
       {page === "machine" && (
@@ -200,48 +260,7 @@ export function App() {
               )}
             </div>
 
-            {mode === "sandbox" && (
-              <div className={`hands ${guideStep?.spot === "hands" ? "spot" : ""}`} data-tour="hands">
-                <button
-                  type="button"
-                  onClick={() => {
-                    stateRef.current = armInject(stateRef.current, 40, 0);
-                    tick();
-                  }}
-                >
-                  {t.injectIn} +40
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    stateRef.current = armInject(stateRef.current, 0, 40);
-                    tick();
-                  }}
-                >
-                  {t.injectOut} −40
-                </button>
-                <button
-                  type="button"
-                  className="danger"
-                  onClick={() => {
-                    stateRef.current = armRun(stateRef.current, 0.2, 7);
-                    tick();
-                  }}
-                >
-                  {t.force20}
-                </button>
-                <button
-                  type="button"
-                  className="danger"
-                  onClick={() => {
-                    stateRef.current = armRun(stateRef.current, 0.4, 7);
-                    tick();
-                  }}
-                >
-                  {t.force40}
-                </button>
-              </div>
-            )}
+            {mode === "sandbox" && hands}
 
             {last && (
               <dl className="readout">

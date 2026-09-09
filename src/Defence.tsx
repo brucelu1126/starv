@@ -58,11 +58,12 @@ function block(ctx: CanvasRenderingContext2D, x: number, y: number, z: number, w
 
 export function Defence({ last, params, t }: { last: EpochTrace | null; params: SimParams; t: Copy }) {
   const p = values(params);
+  const live = Boolean(last && last.withdrawn > 0);
   const [P, setP] = useState(0.28);
-  const fee = resolutionFee(P, p);
-  const charged = DEMO * fee;
-  const burn = charged * p.resolutionBurnShare;
-  const stay = charged - burn;
+  const fee = live && last ? last.resFee : resolutionFee(P, p);
+  const book = live && last ? last.withdrawn : DEMO;
+  const burn = live && last ? last.feeBurned : book * fee * p.resolutionBurnShare;
+  const stay = live && last ? last.toStayers : book * fee * (1 - p.resolutionBurnShare);
 
   const wrap = useRef<HTMLDivElement>(null);
   const cvs = useRef<HTMLCanvasElement>(null);
@@ -72,6 +73,10 @@ export function Defence({ last, params, t }: { last: EpochTrace | null; params: 
   const labelRef = useRef({ leavers: t.leavers, stay: t.toStayers, burn: t.feeBurn });
   feeRef.current = fee;
   labelRef.current = { leavers: t.leavers, stay: t.toStayers, burn: t.feeBurn };
+
+  useEffect(() => {
+    if (last && last.withdrawn > 0) setP(last.pressure);
+  }, [last?.n, last?.pressure, last?.withdrawn]);
 
   useEffect(() => {
     const canvas = cvs.current;
@@ -235,8 +240,8 @@ export function Defence({ last, params, t }: { last: EpochTrace | null; params: 
 
       <div className="door-read">
         <div className="door-num leave">
-          <b>{DEMO.toLocaleString()}</b>
-          <span>{t.demoBook}</span>
+          <b>{book.toLocaleString(undefined, { maximumFractionDigits: 0 })}</b>
+          <span>{live ? "W" : t.demoBook}</span>
         </div>
         <div className="door-num burn" key={`b-${burn.toFixed(0)}`}>
           <b>{burn.toLocaleString(undefined, { maximumFractionDigits: 0 })}</b>
@@ -252,7 +257,15 @@ export function Defence({ last, params, t }: { last: EpochTrace | null; params: 
         <span>
           {t.dragPressure} · P {(P * 100).toFixed(0)}% · fee {(fee * 100).toFixed(2)}%
         </span>
-        <input type="range" min={0} max={0.8} step={0.01} value={P} onChange={(e) => setP(Number(e.target.value))} />
+        <input
+          type="range"
+          min={0}
+          max={0.8}
+          step={0.01}
+          value={P}
+          disabled={live}
+          onChange={(e) => setP(Number(e.target.value))}
+        />
       </label>
 
       <div className="chips">
