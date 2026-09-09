@@ -22,6 +22,31 @@ type Mode = "observer" | "sandbox";
 
 const SEEN = "starv-seen";
 
+const VOICE_SKIP =
+  /alex|daniel|fred|ralph|albert|grandpa|grandma|junior|whisper|zarvox|boing|organ|trinoids|bubbles|hysterical|rocko|eddy|reed|sandy|li-?mu|yun(yang|xi|jian)|kangkang|\bmale\b/i;
+
+function pickVoice(lang: Lang) {
+  const prefix = lang === "zh" ? "zh" : "en";
+  const preferLang = lang === "zh" ? "zh-tw" : "en-us";
+  const keys =
+    lang === "zh"
+      ? ["美佳", "mei-jia", "meijia", "婷婷", "ting"]
+      : ["samantha", "siri", "ava", "allison", "aria", "jenny", "karen", "flo", "shelley", "moira"];
+  const pool = speechSynthesis.getVoices().filter((v) => v.lang.toLowerCase().startsWith(prefix) && !VOICE_SKIP.test(v.name));
+  let best: SpeechSynthesisVoice | undefined;
+  let bestScore = -1;
+  for (const v of pool) {
+    const n = v.name.toLowerCase();
+    const ki = keys.findIndex((k) => n.includes(k) || v.name.includes(k));
+    const score = (ki === -1 ? 0 : (keys.length - ki) * 10) + (v.lang.toLowerCase().startsWith(preferLang) ? 2 : 0);
+    if (score > bestScore) {
+      best = v;
+      bestScore = score;
+    }
+  }
+  return best ?? pool[0];
+}
+
 export function App() {
   const [lang, setLang] = useState<Lang>(() => (localStorage.getItem("starv-lang") === "zh" ? "zh" : "en"));
   const [mode, setMode] = useState<Mode>("observer");
@@ -68,11 +93,9 @@ export function App() {
     }
     const u = new SpeechSynthesisUtterance(t.voiceIntro);
     u.lang = lang === "zh" ? "zh-TW" : "en-US";
-    u.rate = lang === "zh" ? 1 : 0.95;
-    const want = lang === "zh" ? "zh" : "en";
-    const voice =
-      speechSynthesis.getVoices().find((v) => v.lang.toLowerCase().startsWith(lang === "zh" ? "zh-tw" : "en-us")) ??
-      speechSynthesis.getVoices().find((v) => v.lang.toLowerCase().startsWith(want));
+    u.rate = lang === "zh" ? 1.06 : 1.02;
+    u.pitch = 1.08;
+    const voice = pickVoice(lang);
     if (voice) u.voice = voice;
     u.onend = () => setTalking(false);
     u.onerror = () => setTalking(false);
@@ -201,11 +224,28 @@ export function App() {
           </button>
           <button
             type="button"
-            className={`tour-btn ${talking ? "on" : ""}`}
+            className={`voice-btn ${talking ? "on" : ""}`}
+            aria-label={talking ? t.voiceStop : t.voice}
             aria-pressed={talking}
             onClick={toggleVoice}
           >
-            {talking ? t.voiceStop : t.voice}
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="1.7" fill="currentColor" />
+              <path
+                d="M8.6 8.6a4.8 4.8 0 0 0 0 6.8M15.4 8.6a4.8 4.8 0 0 1 0 6.8"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+              />
+              <path
+                d="M6.2 6.2a8.2 8.2 0 0 0 0 11.6M17.8 6.2a8.2 8.2 0 0 1 0 11.6"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+              />
+            </svg>
           </button>
         </div>
         <div className={`modes ${guideStep?.spot === "modes" ? "spot" : ""}`} data-tour="modes">
