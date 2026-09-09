@@ -21,43 +21,7 @@ type Page = "machine" | "defence" | "spec";
 type Mode = "observer" | "sandbox";
 
 const SEEN = "starv-seen";
-
-function pickDaniel() {
-  const all = speechSynthesis.getVoices();
-  return (
-    all.find((v) => v.name === "Daniel" && v.lang.toLowerCase().startsWith("en-gb")) ??
-    all.find((v) => v.name === "Daniel") ??
-    all.find((v) => /google uk english male/i.test(v.name))
-  );
-}
-
-function speakIntro(onDone: () => void) {
-  let started = false;
-  const start = () => {
-    if (started) return true;
-    const voice = pickDaniel();
-    if (!voice) return false;
-    started = true;
-    const u = new SpeechSynthesisUtterance(copy.en.voiceIntro);
-    u.voice = voice;
-    u.lang = "en-GB";
-    u.rate = 1.3;
-    u.pitch = 1;
-    u.onend = onDone;
-    u.onerror = onDone;
-    speechSynthesis.speak(u);
-    return true;
-  };
-  if (start()) return;
-  const retry = () => {
-    if (start()) speechSynthesis.removeEventListener("voiceschanged", retry);
-  };
-  speechSynthesis.addEventListener("voiceschanged", retry);
-  speechSynthesis.getVoices();
-  window.setTimeout(() => {
-    if (!start()) onDone();
-  }, 400);
-}
+const INTRO = "/intro-daniel.mp3";
 
 export function App() {
   const [lang, setLang] = useState<Lang>(() => (localStorage.getItem("starv-lang") === "zh" ? "zh" : "en"));
@@ -72,6 +36,7 @@ export function App() {
   const [playing, setPlaying] = useState(true);
   const [speed, setSpeed] = useState(1);
   const [talking, setTalking] = useState(false);
+  const voiceRef = useRef<HTMLAudioElement | null>(null);
   const stateRef = useRef(genesisState(values(defaultParams())));
   const t = copy[lang];
   const p = useMemo(() => values(params), [params]);
@@ -88,23 +53,40 @@ export function App() {
   useEffect(() => {
     localStorage.setItem("starv-lang", lang);
     document.documentElement.lang = lang === "zh" ? "zh-Hant" : "en";
-    speechSynthesis.cancel();
+    const clip = voiceRef.current;
+    if (clip) {
+      clip.pause();
+      clip.currentTime = 0;
+    }
     setTalking(false);
   }, [lang]);
 
   useEffect(() => {
-    speechSynthesis.getVoices();
-    return () => speechSynthesis.cancel();
+    const clip = new Audio(INTRO);
+    clip.preload = "auto";
+    const done = () => setTalking(false);
+    clip.addEventListener("ended", done);
+    clip.addEventListener("error", done);
+    voiceRef.current = clip;
+    return () => {
+      clip.pause();
+      clip.removeEventListener("ended", done);
+      clip.removeEventListener("error", done);
+    };
   }, []);
 
   function toggleVoice() {
+    const clip = voiceRef.current;
+    if (!clip) return;
     if (talking) {
-      speechSynthesis.cancel();
+      clip.pause();
+      clip.currentTime = 0;
       setTalking(false);
       return;
     }
+    clip.currentTime = 0;
     setTalking(true);
-    speakIntro(() => setTalking(false));
+    void clip.play().catch(() => setTalking(false));
   }
 
   function reset(next = params, scene = scenario) {
