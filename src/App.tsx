@@ -326,10 +326,21 @@ export function App() {
               한
             </button>
           </div>
-          <a className="side-user" href="https://x.com/brucelolzz" target="_blank" rel="noreferrer">
-            <span>standardreserve community demo by @brucelolzz</span>
+          <div className="side-credit">
+            <p>
+              standardreserve community demo by{" "}
+              <a href="https://x.com/brucelolzz" target="_blank" rel="noreferrer">
+                @brucelolzz
+              </a>
+            </p>
+            <p>
+              thanks{" "}
+              <a href="https://x.com/0xbeans" target="_blank" rel="noreferrer">
+                @0xbeans
+              </a>
+            </p>
             <Mark />
-          </a>
+          </div>
         </div>
       </aside>
 

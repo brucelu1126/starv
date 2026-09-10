@@ -92,7 +92,7 @@ a { color: inherit; }
   flex-shrink: 0;
   fill: var(--text);
 }
-.side-user svg {
+.side-credit svg {
   width: 22px;
   height: 22px;
   fill: #fff;
@@ -152,20 +152,20 @@ a { color: inherit; }
   font-size: 12px;
 }
 .lang button.on { background: var(--elev-2); color: var(--text); }
-.side-user {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+.side-credit {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 2px 8px;
   padding: 8px 10px;
-  border-radius: 10px;
-  text-decoration: none;
   color: var(--mute);
   font-size: 11px;
-  line-height: 1.35;
+  line-height: 1.4;
 }
-.side-user span { min-width: 0; }
-.side-user:hover { background: var(--elev); color: var(--text); }
+.side-credit p { grid-column: 1; min-width: 0; }
+.side-credit svg { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
+.side-credit a { color: var(--mute); text-decoration: none; }
+.side-credit a:hover { color: var(--text); text-decoration: underline; }
 
 .main {
   flex: 1;
