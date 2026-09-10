@@ -8,6 +8,8 @@ Repo: https://github.com/brucelu1126/starv
 
 The paper is a design overview, not an implementation spec. This repo exists to **force a 7-day run** and check whether the identities in the whitepaper still hold.
 
+UI is 中 / ENG / 한. Voice tour is English (Daniel). Default mode is Sandbox.
+
 ## Run it
 
 ```bash
@@ -26,7 +28,7 @@ Three pages:
 - **Defence** — the exit door. Leavers pay a quadratic fee; half burns, half pays whoever stayed.
 - **Spec** — each claim → whitepaper section → a function you can grep.
 
-Two modes (bottom of the left rail):
+Left rail, top to bottom: brand + Observer/Sandbox · Tour / Voice tour / Whitepaper · Machine / Defence / Spec.
 
 - **Observer** — watch the tape, speed time. You cannot shove the pool.
 - **Sandbox** — inject ETH, force a 20% or 40% seven-day run, twist numbers the paper left blank.

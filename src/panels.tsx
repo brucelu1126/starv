@@ -1,4 +1,4 @@
-import type { Copy } from "./i18n.ts";
+import type { Copy, Lang } from "./i18n.ts";
 import { SPEC } from "./engine/spec.ts";
 import { type SimParams } from "./engine/params.ts";
 import type { BranchId, EpochTrace } from "./engine/simulate.ts";
@@ -243,105 +243,13 @@ function fmtKnob(n: number) {
   return String(n);
 }
 
-export function Onboard({
-  step,
-  setStep,
-  t,
-  lang,
-  onSandbox,
-}: {
-  step: number;
-  setStep: (n: number) => void;
-  t: Copy;
-  lang: "en" | "zh";
-  onSandbox: () => void;
-}) {
-  const stops = [
-          {
-            title: "One signal",
-            titleZh: "一個訊號",
-            body: "The hook counts ETH in from buys minus ETH out from sells. Volume is not an input. Wash trades that don't move ETH do not move policy.",
-            bodyZh: "Hook 只數買入 ETH 減賣出 ETH。成交量不是輸入。洗量如果不搬 ETH，就搬不動政策。",
-            section: "§4",
-            formula: "F_n = ETH_in − ETH_out",
-          },
-          {
-            title: "Two levers, two clocks",
-            titleZh: "兩根槓桿，兩個時鐘",
-            body: "Fee routing flips on this epoch's sign(F_n). Issuance waits for signal_n = F_{n-1}+F_{n-2}. One fat buy cannot print a rate hike. One fat sell can flip the vault today.",
-            bodyZh: "Fee 路由看當期 sign(F_n)。發行看前兩期加總。一筆大買印不出升息；一筆大賣今天就能翻金庫。",
-            section: "§4 / §5",
-            formula: "signal_n = F_{n-1} + F_{n-2}",
-          },
-          {
-            title: "The ratchet is asymmetric",
-            titleZh: "棘輪不對稱",
-            body: "Raises are earned, one step per positive signal. Cuts land at once. The paper's (5.2) numbers are still blank — the sandbox lets you pick slam-to-floor versus a large step.",
-            bodyZh: "升息要賺，正 signal 一次一步。降息立刻落地。(5.2) 的數字還是空白——沙盒讓你選砍到地板，或大步下砍。",
-            section: "§5",
-            formula: "m_{n+1} = raise(m) if signal>0 else cut(m)",
-          },
-          {
-            title: "70 / 15 / 15",
-            titleZh: "70 / 15 / 15",
-            body: "Every protocol ETH — swap fees and charter auctions — splits the same way. 70% to the active vault, 15% forever-POL, 15% team. Expansion buys gold. Contraction buybacks on min(0.10V, 0.002R) per hour.",
-            bodyZh: "所有協議 ETH（交易費與特許拍賣）同一套切法。70% 進作用中金庫，15% 永久 POL，15% 團隊。擴張買金。收縮每小時按 min(0.10V, 0.002R) 回購。",
-            section: "§11",
-            formula: "spend_tick = min(0.10V, 0.002R)",
-          },
-          {
-            title: "The door is congestion priced",
-            titleZh: "門口用擁擠定價",
-            body: "P = W / max(D+W, ε) over seven days. Fee is a quadratic up to a ceiling. Half burns. Half pays stayers. Withdrawals never pause.",
-            bodyZh: "P = 七日提款 / max(留下+提款, ε)。費率走二次曲線直到天花板。一半燒、一半給留下的人。提款從不暫停。",
-            section: "§9.1",
-            formula: "fee = floor + (ceil−floor) × min(1, P/P_sat)²",
-          },
-          {
-            title: "Now break it",
-            titleZh: "現在去搞爆它",
-            body: "Observer is for watching. Sandbox is for a forced 20% or 40% seven-day run. If the identities hold, the bank gets more defensive the worse the door gets — it does not unwind.",
-            bodyZh: "觀察層用來看。沙盒用來強制一場 20% 或 40% 的七日擠兌。若恆等式成立，門口越擠，系統越防衛——而不是自己拆掉。",
-            section: "§13.4",
-            formula: "cut + buyback + priced door, same epoch",
-          },
-        ];
-  const s = stops[step]!;
-  const zh = lang === "zh";
-  return (
-    <section className="onboard">
-      <header>
-        <p className="kicker">
-          {step + 1} / {stops.length}
-        </p>
-        <h2>{t.onboardTitle}</h2>
-        <p>{t.onboardSub}</p>
-      </header>
-      <article>
-        <p className="section">{s.section}</p>
-        <h3>{zh ? s.titleZh : s.title}</h3>
-        <p>{zh ? s.bodyZh : s.body}</p>
-        <pre>{s.formula}</pre>
-      </article>
-      <footer>
-        <button type="button" disabled={step === 0} onClick={() => setStep(step - 1)}>
-          {t.prev}
-        </button>
-        {step < stops.length - 1 ? (
-          <button type="button" className="primary" onClick={() => setStep(step + 1)}>
-            {t.next}
-          </button>
-        ) : (
-          <button type="button" className="primary" onClick={onSandbox}>
-            {t.startSandbox}
-          </button>
-        )}
-      </footer>
-    </section>
-  );
+function specRule(row: (typeof SPEC)[number], lang: Lang) {
+  if (lang === "zh") return row.ruleZh;
+  if (lang === "ko") return row.ruleKo;
+  return row.rule;
 }
 
-export function Spec({ t, lang }: { t: Copy; lang: "en" | "zh" }) {
+export function Spec({ t, lang }: { t: Copy; lang: Lang }) {
   return (
     <section className="spec">
       <header className="page-head">
@@ -362,7 +270,7 @@ export function Spec({ t, lang }: { t: Copy; lang: "en" | "zh" }) {
           {SPEC.map((row) => (
             <tr key={row.id}>
               <td>
-                <strong>{lang === "zh" ? row.ruleZh : row.rule}</strong>
+                <strong>{specRule(row, lang)}</strong>
                 <div className="muted">
                   {row.section}{" "}
                   <span className={`badge ${row.source === "wp" ? "wp" : "assumed"}`}>{row.source === "wp" ? t.wp : t.assumed}</span>

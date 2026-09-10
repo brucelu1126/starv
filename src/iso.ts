@@ -20,6 +20,109 @@ export function spin(x: number, y: number, z: number, cam: Cam): [number, number
   return [rx + cam.cx, ry + cam.cy, rz];
 }
 
+const LINE = "rgba(242,230,222,0.22)";
+
+function lift(hex: string, n: number) {
+  if (hex[0] !== "#") return hex;
+  const x = Number.parseInt(hex.slice(1), 16);
+  if (Number.isNaN(x)) return hex;
+  const r = Math.min(255, (x >> 16) + n);
+  const g = Math.min(255, ((x >> 8) & 255) + n);
+  const b = Math.min(255, (x & 255) + n);
+  return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+}
+
+function face(ctx: CanvasRenderingContext2D, pts: { x: number; y: number }[], fill: string) {
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+  ctx.closePath();
+  ctx.fillStyle = fill;
+  ctx.fill();
+  ctx.strokeStyle = LINE;
+  ctx.lineWidth = 1;
+  ctx.stroke();
+}
+
+export function drawBox(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  z: number,
+  w: number,
+  d: number,
+  h: number,
+  cam: Cam,
+  top: string,
+  right: string,
+  left: string,
+) {
+  const A = iso(x, y, z + h, cam);
+  const B = iso(x + w, y, z + h, cam);
+  const C = iso(x + w, y + d, z + h, cam);
+  const D = iso(x, y + d, z + h, cam);
+  const E = iso(x, y, z, cam);
+  const F = iso(x + w, y, z, cam);
+  const G = iso(x + w, y + d, z, cam);
+  const Hm = iso(x, y + d, z, cam);
+  face(ctx, [B, F, G, C], right);
+  face(ctx, [A, D, Hm, E], left);
+  face(ctx, [A, B, C, D], top);
+}
+
+/** Stepped tower. L/R keep the inner face flush (Standard mark). C insets both sides. */
+export function drawTower(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  z: number,
+  w: number,
+  d: number,
+  h: number,
+  cam: Cam,
+  top: string,
+  right: string,
+  left: string,
+  side: "C" | "L" | "R" = "C",
+) {
+  const bands = [
+    { z0: 0, zh: 0.12, cut: 0 },
+    { z0: 0.12, zh: 0.12, cut: 0.22 },
+    { z0: 0.24, zh: 0.52, cut: 0.4 },
+    { z0: 0.76, zh: 0.16, cut: 0.58 },
+    { z0: 0.92, zh: 0.08, cut: 0.74 },
+  ];
+  for (const b of bands) {
+    const cut = w * b.cut;
+    const sx = side === "L" ? x + cut : side === "R" ? x : x + cut / 2;
+    const sw = w - cut;
+    const sd = d * (1 - b.cut * 0.28);
+    const sy = y + (d - sd) / 2;
+    const k = (b.cut * 42) | 0;
+    drawBox(ctx, sx, sy, z + h * b.z0, sw, sd, h * b.zh, cam, lift(top, k), lift(right, (k * 0.45) | 0), lift(left, (k * 0.55) | 0));
+  }
+}
+
+export function drawTwin(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  z: number,
+  w: number,
+  d: number,
+  h: number,
+  cam: Cam,
+  top: string,
+  right: string,
+  left: string,
+) {
+  const gap = Math.max(0.4, w * 0.16);
+  const tw = (w - gap) / 2;
+  drawTower(ctx, x, y, z, tw, d, h, cam, top, right, left, "L");
+  drawTower(ctx, x + tw + gap, y, z, tw, d, h, cam, top, right, left, "R");
+  drawBox(ctx, x + tw * 0.72, y + d * 0.38, z + h * 0.4, tw * 0.56 + gap, d * 0.24, h * 0.05, cam, top, right, left);
+}
+
 export function iso(x: number, y: number, z: number, cam: Cam) {
   const [X, Y, Z] = spin(x, y, z, cam);
   return {

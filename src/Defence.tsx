@@ -3,9 +3,9 @@ import { resolutionFee } from "./engine/formulas.ts";
 import { values, type SimParams } from "./engine/params.ts";
 import type { EpochTrace } from "./engine/simulate.ts";
 import type { Copy } from "./i18n.ts";
-import { attachOrbit, easeOrbit, fitCam, freshOrbit, iso, type Cam } from "./iso.ts";
+import { attachOrbit, drawBox, drawTwin, easeOrbit, fitCam, freshOrbit, iso } from "./iso.ts";
 
-const PIVOT: [number, number] = [4.2, 5];
+const PIVOT: [number, number] = [4.8, 5];
 
 type Hue = "run" | "burn" | "stay";
 type Bit = { x: number; y: number; z: number; hue: Hue; u: number };
@@ -20,18 +20,23 @@ const MARKS = [
 const DEMO = 1_000_000;
 
 const WORLD: [number, number, number][] = [
-  [-2.2, 1.0, 0],
-  [10.2, 1.0, 0],
-  [-2.2, 9.4, 0],
-  [10.2, 9.4, 0],
-  [3.9, 3.6, 8.2],
-  [5.5, 5.4, 8.2],
-  [0.0, 4.0, 4.4],
-  [8.2, 4.4, 3.6],
-  [4.7, 8.0, 2.2],
+  [-1.8, 2.2, 0],
+  [10.4, 2.2, 0],
+  [-1.8, 9.0, 0],
+  [10.4, 9.0, 0],
+  [3.4, 3.5, 5.2],
+  [6.4, 3.5, 5.2],
+  [8.4, 5.0, 1.4],
+  [4.8, 8.2, 1.2],
 ];
 
-function poly(ctx: CanvasRenderingContext2D, pts: { x: number; y: number }[], fill: string, stroke = "rgba(0,0,0,0.35)") {
+const INK = { top: "#2e2822", right: "#1c1814", left: "#24201a", line: "rgba(242,230,222,0.2)" };
+const PLUS = "#3ecf8e";
+const MINUS = "#ff6b5a";
+const GOLD = "#d4b896";
+const PAPER = "#f2e6de";
+
+function poly(ctx: CanvasRenderingContext2D, pts: { x: number; y: number }[], fill: string, stroke = INK.line) {
   ctx.beginPath();
   ctx.moveTo(pts[0].x, pts[0].y);
   for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
@@ -39,27 +44,16 @@ function poly(ctx: CanvasRenderingContext2D, pts: { x: number; y: number }[], fi
   ctx.fillStyle = fill;
   ctx.fill();
   ctx.strokeStyle = stroke;
+  ctx.lineWidth = 1;
   ctx.stroke();
 }
 
-function block(ctx: CanvasRenderingContext2D, x: number, y: number, z: number, w: number, d: number, h: number, cam: Cam, top: string, right: string, left: string) {
-  const A = iso(x, y, z + h, cam);
-  const B = iso(x + w, y, z + h, cam);
-  const C = iso(x + w, y + d, z + h, cam);
-  const D = iso(x, y + d, z + h, cam);
-  const E = iso(x, y, z, cam);
-  const F = iso(x + w, y, z, cam);
-  const G = iso(x + w, y + d, z, cam);
-  const Hm = iso(x, y + d, z, cam);
-  poly(ctx, [B, F, G, C], right);
-  poly(ctx, [A, D, Hm, E], left);
-  poly(ctx, [A, B, C, D], top);
-}
 
 export function Defence({ last, params, t }: { last: EpochTrace | null; params: SimParams; t: Copy }) {
   const p = values(params);
   const live = Boolean(last && last.withdrawn > 0);
   const [P, setP] = useState(0.28);
+  const shownP = live && last ? last.pressure : P;
   const fee = live && last ? last.resFee : resolutionFee(P, p);
   const book = live && last ? last.withdrawn : DEMO;
   const burn = live && last ? last.feeBurned : book * fee * p.resolutionBurnShare;
@@ -70,8 +64,10 @@ export function Defence({ last, params, t }: { last: EpochTrace | null; params: 
   const bits = useRef<Bit[]>([]);
   const orbit = useRef(freshOrbit());
   const feeRef = useRef(fee);
+  const shareRef = useRef(p.resolutionBurnShare);
   const labelRef = useRef({ leavers: t.leavers, stay: t.toStayers, burn: t.feeBurn });
   feeRef.current = fee;
+  shareRef.current = p.resolutionBurnShare;
   labelRef.current = { leavers: t.leavers, stay: t.toStayers, burn: t.feeBurn };
 
   useEffect(() => {
@@ -93,9 +89,9 @@ export function Defence({ last, params, t }: { last: EpochTrace | null; params: 
       const r = host.getBoundingClientRect();
       const dpr = Math.min(2, window.devicePixelRatio || 1);
       canvas.width = Math.floor(r.width * dpr);
-      canvas.height = Math.floor(Math.max(420, r.width * 0.52) * dpr);
+      canvas.height = Math.floor(Math.max(160, r.height) * dpr);
       canvas.style.width = `${r.width}px`;
-      canvas.style.height = `${canvas.height / dpr}px`;
+      canvas.style.height = `${r.height}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
     fit();
@@ -110,100 +106,105 @@ export function Defence({ last, params, t }: { last: EpochTrace | null; params: 
       const W = canvas.clientWidth;
       const H = canvas.clientHeight;
       easeOrbit(orbit.current, dt);
-      const cam = fitCam(WORLD, W, H, 72, orbit.current, PIVOT);
+      const cam = fitCam(WORLD, W, H, 56, orbit.current, PIVOT);
       const f = feeRef.current;
-      const doorH = 1.4 + f * 4.2;
+      const sill = 0.35 + f * 3.4;
 
       acc += dt;
       const rate = 10 + f * 36;
       if (acc > 1 / rate) {
         acc = 0;
         bits.current.push({
-          x: -1.2 + Math.random() * 0.4,
-          y: 3.6 + Math.random() * 1.4,
-          z: 0.35 + Math.random() * 0.25,
+          x: -1.4 + Math.random() * 0.3,
+          y: 4.2 + Math.random() * 1.6,
+          z: 0.3 + Math.random() * 0.2,
           hue: "run",
           u: 0,
         });
       }
 
       ctx.clearRect(0, 0, W, H);
-      const sky = ctx.createLinearGradient(0, 0, 0, H);
-      sky.addColorStop(0, "#3a2218");
-      sky.addColorStop(0.45, "#1c100e");
-      sky.addColorStop(1, "#0a0606");
-      ctx.fillStyle = sky;
+      ctx.fillStyle = "#0d1116";
       ctx.fillRect(0, 0, W, H);
 
-      for (let i = 0; i <= 10; i++) {
-        const a = iso(i * 1.2 - 2, 1.2, 0, cam);
-        const b = iso(i * 1.2 - 2, 9.2, 0, cam);
-        ctx.strokeStyle = "rgba(230,180,120,0.08)";
+      const fl = [iso(-1.6, 2.6, 0, cam), iso(10.2, 2.6, 0, cam), iso(10.2, 8.8, 0, cam), iso(-1.6, 8.8, 0, cam)];
+      poly(ctx, fl, "#141210");
+      ctx.strokeStyle = "rgba(242,230,222,0.07)";
+      for (let i = 0; i <= 11; i++) {
+        const a = iso(i * 1.05 - 1.6, 2.6, 0, cam);
+        const b = iso(i * 1.05 - 1.6, 8.8, 0, cam);
         ctx.beginPath();
         ctx.moveTo(a.x, a.y);
         ctx.lineTo(b.x, b.y);
         ctx.stroke();
       }
-      for (let j = 0; j <= 8; j++) {
-        const a = iso(-2, 1.2 + j, 0, cam);
-        const b = iso(10, 1.2 + j, 0, cam);
-        ctx.strokeStyle = "rgba(230,180,120,0.08)";
+      for (let j = 0; j <= 6; j++) {
+        const a = iso(-1.6, 2.6 + j, 0, cam);
+        const b = iso(10.2, 2.6 + j, 0, cam);
         ctx.beginPath();
         ctx.moveTo(a.x, a.y);
         ctx.lineTo(b.x, b.y);
         ctx.stroke();
       }
 
-      block(ctx, 6.6, 3.2, 0, 2.8, 2.6, 1.8, cam, "#24352c", "#1a2820", "#15211b");
-      block(ctx, 3.6, 6.4, 0, 2.2, 2.0, 0.7, cam, "#3a2a12", "#2a1c0c", "#1e140a");
-      block(ctx, 3.9, 3.6, 0, 1.6, 1.8, doorH, cam, `rgba(227,93,74,${0.35 + f * 0.45})`, "#8a3028", "#5a201c");
+      drawBox(ctx, -1.2, 3.9, 0, 4.4, 2.2, 0.22, cam, "#1a1815", INK.right, INK.left);
+      drawTwin(ctx, 3.35, 3.5, 0, 2.92, 2.9, 4.6, cam, INK.top, INK.right, INK.left);
+      drawBox(ctx, 4.12, 3.75, 0, 1.38, 2.4, sill, cam, MINUS, "#8a2e28", "#4a1816");
+      drawBox(ctx, 4.0, 6.85, 0, 2.1, 1.7, 0.5, cam, GOLD, "#8a6a38", "#2a2416");
+      drawBox(ctx, 6.9, 3.85, 0, 2.5, 2.3, 0.7, cam, INK.top, INK.right, INK.left);
 
-      const glow = iso(4.7, 4.5, doorH + 0.2, cam);
+      const glow = iso(4.8, 4.9, sill + 0.15, cam);
       ctx.beginPath();
-      ctx.fillStyle = `rgba(227,93,74,${0.12 + 0.18 * Math.sin(pulse * 4)})`;
-      ctx.arc(glow.x, glow.y, 18 + f * 28, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,107,90,${0.08 + 0.14 * Math.sin(pulse * 3)})`;
+      ctx.arc(glow.x, glow.y, 14 + f * 22, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.font = "12px 'IBM Plex Mono', monospace";
+      ctx.font = "11px 'IBM Plex Mono', ui-monospace, monospace";
       ctx.textAlign = "center";
       const L = labelRef.current;
-      const left = iso(0.2, 4.2, 2.2, cam);
-      const right = iso(8.0, 4.4, 2.4, cam);
-      const pit = iso(4.7, 7.4, 1.4, cam);
-      const feePt = iso(4.7, 4.5, doorH + 0.8, cam);
-      ctx.fillStyle = "#e35d4a";
-      ctx.fillText(L.leavers, left.x, left.y);
-      ctx.fillStyle = "#3ecf8e";
-      ctx.fillText(L.stay, right.x, right.y);
-      ctx.fillStyle = "#e6c36a";
-      ctx.fillText(L.burn, pit.x, pit.y);
-      ctx.fillStyle = "#efe6d2";
-      ctx.fillText(`${(f * 100).toFixed(1)}%`, feePt.x, feePt.y);
+      const left = iso(0.4, 3.6, 1.1, cam);
+      const feePt = iso(4.8, 3.4, 4.6, cam);
+      const pit = iso(5.0, 8.0, 1.1, cam);
+      const right = iso(8.1, 3.6, 1.3, cam);
+      ctx.fillStyle = MINUS;
+      ctx.fillText(`01  ${L.leavers}`, left.x, left.y);
+      ctx.fillStyle = PAPER;
+      ctx.fillText(`02  FEE  ${(f * 100).toFixed(1)}%`, feePt.x, feePt.y);
+      ctx.fillStyle = GOLD;
+      ctx.fillText(`03  ${L.burn}`, pit.x, pit.y);
+      ctx.fillStyle = PLUS;
+      ctx.fillText(`04  ${L.stay}`, right.x, right.y);
 
       bits.current = bits.current.filter((b) => {
         b.u += dt * (0.55 + f * 0.9);
         if (b.hue === "run") {
-          b.x += dt * (2.8 + f * 1.4);
-          if (b.x >= 3.7) {
-            b.hue = Math.random() < 0.5 ? "burn" : "stay";
-          }
+          b.x += dt * (2.4 + f * 0.8);
+          if (b.x >= 4.2) b.hue = Math.random() < shareRef.current ? "burn" : "stay";
         } else if (b.hue === "burn") {
-          b.x += (4.5 - b.x) * dt * 3;
-          b.y += dt * 2.4;
-          b.z += dt * 0.4;
+          b.x += (4.9 - b.x) * dt * 2.6;
+          b.y += dt * 2.2;
+          b.z += dt * 0.25;
         } else {
-          b.x += dt * 3.2;
-          b.y += (4.4 - b.y) * dt * 2;
+          b.x += dt * 2.8;
+          b.y += (4.9 - b.y) * dt * 2;
         }
         const p2 = iso(b.x, b.y, b.z, cam);
         ctx.beginPath();
         ctx.globalAlpha = Math.max(0, 1 - b.u * 0.55);
-        ctx.fillStyle = b.hue === "run" ? "#e35d4a" : b.hue === "burn" ? "#e6c36a" : "#3ecf8e";
-        ctx.arc(p2.x, p2.y, b.hue === "run" ? 3.4 : 2.8, 0, Math.PI * 2);
+        ctx.fillStyle = b.hue === "run" ? MINUS : b.hue === "burn" ? GOLD : PLUS;
+        ctx.arc(p2.x, p2.y, b.hue === "run" ? 3.2 : 2.6, 0, Math.PI * 2);
         ctx.fill();
         ctx.globalAlpha = 1;
         return b.u < 2.4 && b.x < 12 && b.y < 11;
       });
+
+      const fog = ctx.createLinearGradient(0, 0, 0, H);
+      fog.addColorStop(0, "rgba(13,17,22,0.55)");
+      fog.addColorStop(0.2, "rgba(13,17,22,0)");
+      fog.addColorStop(0.82, "rgba(13,17,22,0)");
+      fog.addColorStop(1, "rgba(13,17,22,0.48)");
+      ctx.fillStyle = fog;
+      ctx.fillRect(0, 0, W, H);
 
       raf = requestAnimationFrame(tick);
     };
@@ -246,14 +247,14 @@ export function Defence({ last, params, t }: { last: EpochTrace | null; params: 
 
       <label className="pressure">
         <span>
-          {t.dragPressure} · P {(P * 100).toFixed(0)}% · fee {(fee * 100).toFixed(2)}%
+          {t.dragPressure} · P {(shownP * 100).toFixed(0)}% · fee {(fee * 100).toFixed(2)}%
         </span>
         <input
           type="range"
           min={0}
           max={0.8}
           step={0.01}
-          value={P}
+          value={shownP}
           disabled={live}
           onChange={(e) => setP(Number(e.target.value))}
         />
@@ -261,7 +262,7 @@ export function Defence({ last, params, t }: { last: EpochTrace | null; params: 
 
       <div className="chips">
         {MARKS.map((m) => (
-          <button key={m.id} type="button" className={Math.abs(P - m.P) < 0.03 ? "on" : ""} onClick={() => setP(m.P)}>
+          <button key={m.id} type="button" className={Math.abs(shownP - m.P) < 0.03 ? "on" : ""} disabled={live} onClick={() => setP(m.P)}>
             {t[m.id]} {(m.P * 100).toFixed(0)}%
           </button>
         ))}

@@ -57,8 +57,11 @@ function fmt(n: number) {
 }
 
 export function App() {
-  const [lang, setLang] = useState<Lang>(() => (localStorage.getItem("starv-lang") === "zh" ? "zh" : "en"));
-  const [mode, setMode] = useState<Mode>("observer");
+  const [lang, setLang] = useState<Lang>(() => {
+    const saved = localStorage.getItem("starv-lang");
+    return saved === "zh" || saved === "ko" ? saved : "en";
+  });
+  const [mode, setMode] = useState<Mode>("sandbox");
   const [page, setPage] = useState<Page>("machine");
   const [sheet, setSheet] = useState<Sheet>("live");
   const [guide, setGuide] = useState<number | null>(() => (localStorage.getItem(SEEN) ? null : 0));
@@ -88,7 +91,7 @@ export function App() {
 
   useEffect(() => {
     localStorage.setItem("starv-lang", lang);
-    document.documentElement.lang = lang === "zh" ? "zh-Hant" : "en";
+    document.documentElement.lang = lang === "zh" ? "zh-Hant" : lang === "ko" ? "ko" : "en";
     const clip = voiceRef.current;
     if (clip) {
       clip.pause();
@@ -162,7 +165,8 @@ export function App() {
 
   const last = tape.find((e) => e.n === selected) ?? tape.at(-1) ?? null;
   const dead = last !== null && last.D < p.startInternal * 0.05;
-  const defLast = tape.find((e) => e.n === selected) ?? [...tape].reverse().find((e) => e.withdrawn > 0) ?? last;
+  const picked = tape.find((e) => e.n === selected);
+  const defLast = picked && picked.withdrawn > 0 ? picked : [...tape].reverse().find((e) => e.withdrawn > 0) ?? last;
 
   const hands = (
     <div className={`hands ${guideStep?.spot === "hands" ? "spot" : ""}`} data-tour="hands">
@@ -242,52 +246,13 @@ export function App() {
   return (
     <div className={`app ${mode}`}>
       <aside className="side">
-        <div className="side-brand">
-          <Mark className="mark" />
-        </div>
-        <nav className={`side-nav ${guideStep?.spot === "nav" ? "spot" : ""}`} data-tour="nav">
-          <button type="button" className={`nav-btn ${page === "machine" ? "on" : ""}`} onClick={() => setPage("machine")}>
-            <Icon d="M4 7h16v10H4zM8 7V5h8v2M9 12h6" />
-            {t.machine}
-          </button>
-          <button type="button" className={`nav-btn ${page === "defence" ? "on" : ""}`} onClick={() => setPage("defence")}>
-            <Icon d="M12 3l8 3v6c0 5-3.4 8.4-8 9.5C7.4 20.4 4 17 4 12V6z" />
-            {t.defence}
-          </button>
-          <button type="button" className={`nav-btn ${page === "spec" ? "on" : ""}`} onClick={() => setPage("spec")}>
-            <Icon d="M7 4h10v16H7zM10 8h4M10 12h4M10 16h3" />
-            {t.spec}
-          </button>
-          <div className="side-gap" />
-          <button type="button" className="nav-btn" onClick={() => setGuide(0)}>
-            <Icon d="M12 21a9 9 0 1 0-9-9M12 8v5l3 2" />
-            {t.replayTour}
-          </button>
-          <button
-            type="button"
-            className={`nav-btn voice-btn ${talking ? "on" : ""}`}
-            aria-label={talking ? t.voiceStop : t.voice}
-            aria-pressed={talking}
-            onClick={toggleVoice}
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="12" cy="12" r="1.7" fill="currentColor" />
-              <path
-                d="M8.6 8.6a4.8 4.8 0 0 0 0 6.8M15.4 8.6a4.8 4.8 0 0 1 0 6.8M6.2 6.2a8.2 8.2 0 0 0 0 11.6M17.8 6.2a8.2 8.2 0 0 1 0 11.6"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-              />
-            </svg>
-            {t.voice}
-          </button>
-          <a className="nav-btn" href={PAPER} target="_blank" rel="noreferrer">
-            <Icon d="M6 4h9l3 3v13H6zM9 10h6M9 14h6" />
-            {t.paperLink}
-          </a>
-        </nav>
-        <div className="side-foot">
+        <div className="side-top">
+          <div className="side-brand">
+            <Mark className="mark" />
+            <p className="brand-lockup">
+              Standard<span>[community demo]</span>
+            </p>
+          </div>
           <div className={`modes ${guideStep?.spot === "modes" ? "spot" : ""}`} data-tour="modes">
             <button
               type="button"
@@ -303,12 +268,62 @@ export function App() {
               {t.sandbox}
             </button>
           </div>
+          <div className="side-gap" />
+          <nav className="side-nav">
+            <button type="button" className="nav-btn" onClick={() => setGuide(0)}>
+              <Icon d="M12 21a9 9 0 1 0-9-9M12 8v5l3 2" />
+              {t.replayTour}
+            </button>
+            <button
+              type="button"
+              className={`nav-btn voice-btn ${talking ? "on" : ""}`}
+              aria-label={talking ? t.voiceStop : t.voice}
+              aria-pressed={talking}
+              onClick={toggleVoice}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="1.7" fill="currentColor" />
+                <path
+                  d="M8.6 8.6a4.8 4.8 0 0 0 0 6.8M15.4 8.6a4.8 4.8 0 0 1 0 6.8M6.2 6.2a8.2 8.2 0 0 0 0 11.6M17.8 6.2a8.2 8.2 0 0 1 0 11.6"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                />
+              </svg>
+              {t.voice}
+            </button>
+            <a className="nav-btn" href={PAPER} target="_blank" rel="noreferrer">
+              <Icon d="M6 4h9l3 3v13H6zM9 10h6M9 14h6" />
+              {t.paperLink}
+            </a>
+          </nav>
+          <div className="side-gap" />
+          <nav className={`side-nav ${guideStep?.spot === "nav" ? "spot" : ""}`} data-tour="nav">
+            <button type="button" className={`nav-btn ${page === "machine" ? "on" : ""}`} onClick={() => setPage("machine")}>
+              <Icon d="M4 7h16v10H4zM8 7V5h8v2M9 12h6" />
+              {t.machine}
+            </button>
+            <button type="button" className={`nav-btn ${page === "defence" ? "on" : ""}`} onClick={() => setPage("defence")}>
+              <Icon d="M12 3l8 3v6c0 5-3.4 8.4-8 9.5C7.4 20.4 4 17 4 12V6z" />
+              {t.defence}
+            </button>
+            <button type="button" className={`nav-btn ${page === "spec" ? "on" : ""}`} onClick={() => setPage("spec")}>
+              <Icon d="M7 4h10v16H7zM10 8h4M10 12h4M10 16h3" />
+              {t.spec}
+            </button>
+          </nav>
+        </div>
+        <div className="side-foot">
           <div className="lang">
             <button type="button" className={lang === "zh" ? "on" : ""} onClick={() => setLang("zh")} aria-label="中文">
               中
             </button>
             <button type="button" className={lang === "en" ? "on" : ""} onClick={() => setLang("en")} aria-label="English">
               ENG
+            </button>
+            <button type="button" className={lang === "ko" ? "on" : ""} onClick={() => setLang("ko")} aria-label="한국어">
+              한
             </button>
           </div>
           <a className="side-user" href="https://x.com/brucelolzz" target="_blank" rel="noreferrer">
@@ -349,7 +364,6 @@ export function App() {
                     {mode === "observer" ? t.observerHint : t.sandboxHint} · {t.friendNote}
                   </p>
                 </div>
-                <Mark className="avatar" />
               </header>
 
               {last && (
@@ -357,8 +371,8 @@ export function App() {
                   <Card label={t.price} value={last.price.toFixed(6)} />
                   <Card
                     label={t.netFlow}
-                    value={`${last.F >= 0 ? "+" : ""}${last.F.toFixed(2)}`}
-                    tone={last.F >= 0 ? "plus" : "minus"}
+                    value={`${last.F > 0 ? "+" : ""}${last.F.toFixed(2)}`}
+                    tone={last.F > 0 ? "plus" : "minus"}
                   />
                   <Card label={t.pressure} value={`${(last.pressure * 100).toFixed(1)}%`} />
                 </div>
@@ -374,7 +388,7 @@ export function App() {
               <div className={`sheet ${guideStep?.spot === "why" ? "spot" : ""}`} data-tour="why">
                 {sheet === "live" && (
                   <>
-                    <div data-tour="machine" className={guideStep?.spot === "machine" ? "spot" : ""}>
+                    <div data-tour="machine" className={`fill ${guideStep?.spot === "machine" ? "spot" : ""}`}>
                       <Machine
                         last={last}
                         lit={lit}
@@ -417,8 +431,8 @@ export function App() {
                     </div>
                     <div>
                       <dt>{t.netFlow}</dt>
-                      <dd className={last.F >= 0 ? "plus" : "minus"}>
-                        {last.F >= 0 ? "+" : ""}
+                      <dd className={last.F > 0 ? "plus" : "minus"}>
+                        {last.F > 0 ? "+" : ""}
                         {last.F.toFixed(2)}
                       </dd>
                     </div>
@@ -434,7 +448,7 @@ export function App() {
                     </div>
                     <div>
                       <dt>{t.regime}</dt>
-                      <dd className={last.regime}>{last.regime}</dd>
+                      <dd className={last.regime}>{last.regime === "expansion" ? t.regimeExp : t.regimeCon}</dd>
                     </div>
                     <div>
                       <dt>{t.issued}</dt>
@@ -497,7 +511,7 @@ export function App() {
               localStorage.setItem(SEEN, "1");
               setGuide(null);
               setPage("machine");
-              setMode("observer");
+              setMode("sandbox");
               setPlaying(true);
               return;
             }
@@ -507,7 +521,7 @@ export function App() {
             localStorage.setItem(SEEN, "1");
             setGuide(null);
             setPage("machine");
-            setMode("observer");
+            setMode("sandbox");
             setPlaying(true);
           }}
         />

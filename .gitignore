@@ -4,3 +4,5 @@ dist
 .vercel
 .env
 .env.*
+.x-intro/
+starv-x-intro.mp4
