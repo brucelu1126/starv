@@ -22,7 +22,7 @@ type Mode = "observer" | "sandbox";
 type Sheet = "live" | "why" | "ledger";
 
 const SEEN = "starv-seen";
-const INTRO = "/intro-daniel.mp3";
+const INTRO = "/intro-voice.mp3?v=2";
 
 function Mark({ className }: { className?: string }) {
   return (
@@ -56,7 +56,7 @@ function fmt(n: number) {
   return n.toFixed(0);
 }
 
-export function App() {
+export function App({ onHome }: { onHome?: () => void }) {
   const [lang, setLang] = useState<Lang>(() => {
     const saved = localStorage.getItem("starv-lang");
     return saved === "zh" || saved === "ko" ? saved : "en";
@@ -247,12 +247,12 @@ export function App() {
     <div className={`app ${mode}`}>
       <aside className="side">
         <div className="side-top">
-          <div className="side-brand">
+          <button type="button" className="side-brand" onClick={onHome} aria-label="Home">
             <Mark className="mark" />
             <p className="brand-lockup">
               Standard<span>[community demo]</span>
             </p>
-          </div>
+          </button>
           <div className={`modes ${guideStep?.spot === "modes" ? "spot" : ""}`} data-tour="modes">
             <button
               type="button"

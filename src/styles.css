@@ -13,7 +13,8 @@
 }
 
 * { box-sizing: border-box; }
-html, body, #root { margin: 0; height: 100%; background: var(--bg); color: var(--text); overflow: hidden; }
+html, body, #root { margin: 0; min-height: 100%; background: var(--bg); color: var(--text); }
+html.on-app, html.on-app body, html.on-app #root { height: 100%; overflow: hidden; }
 body {
   font-family: Inter, ui-sans-serif, system-ui, sans-serif;
   font-size: 14px;
@@ -70,6 +71,9 @@ a { color: inherit; }
   align-items: center;
   gap: 10px;
   padding: 4px 10px 8px;
+  width: 100%;
+  background: transparent;
+  text-align: left;
 }
 .brand-lockup {
   margin: 0;
@@ -515,7 +519,157 @@ code { color: #d4d4d4; }
 .params details { margin-top: 8px; border-top: 1px solid var(--line); padding-top: 8px; }
 .params summary { cursor: pointer; color: var(--mute); }
 
+.landing {
+  position: relative;
+  min-height: 100vh;
+  isolation: isolate;
+}
+.landing::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: url("/city-mist.webp") center 36% / cover no-repeat;
+  opacity: 0.18;
+  filter: invert(1) grayscale(1) contrast(1.15);
+  mix-blend-mode: screen;
+}
+.landing > * { position: relative; z-index: 1; }
+.land-bar {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 28px;
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(242, 230, 222, 0.08);
+}
+.land-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+.land-brand span {
+  color: var(--mute);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+}
+.land-brand .mark { width: 22px; height: 22px; fill: var(--text); }
+.land-launch {
+  background: #fff;
+  color: #111;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+.land-hero {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 88px 28px 48px;
+}
+.land-hero h1 {
+  margin: 0 0 18px;
+  font-size: clamp(40px, 7vw, 64px);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 0.95;
+}
+.land-lede {
+  max-width: 34em;
+  margin: 0 0 28px;
+  color: var(--mute);
+  font-size: 16px;
+  line-height: 1.55;
+}
+.land-kicker {
+  margin: 0;
+  color: var(--gold);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.land-scroll {
+  margin: 56px 0 0;
+  color: var(--mute);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+.land-cards {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 28px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.land-card {
+  background: var(--elev);
+  border-radius: 16px;
+  padding: 28px 28px 24px;
+}
+.land-card h2 {
+  margin: 0 0 14px;
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+.land-card p { margin: 0 0 12px; color: var(--text); line-height: 1.55; }
+.land-card p:last-child { margin-bottom: 0; }
+.land-num {
+  margin: 0 0 10px;
+  color: var(--gold);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.land-num span { color: var(--mute); letter-spacing: 0.06em; }
+.land-note {
+  margin-top: 16px !important;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  color: var(--mute) !important;
+  font-size: 13px;
+}
+.land-brake ul {
+  margin: 0 0 12px;
+  padding: 0 0 0 18px;
+  color: var(--text);
+}
+.land-brake li { margin: 6px 0; }
+.land-foot {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 8px 28px 72px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 20px;
+}
+.land-foot a { color: var(--mute); text-decoration: none; }
+.land-foot a:hover { color: var(--text); text-decoration: underline; }
+.land-foot p {
+  flex-basis: 100%;
+  margin: 8px 0 0;
+  color: var(--mute);
+  font-size: 12px;
+}
+
 @media (max-width: 860px) {
+  .land-bar { padding: 14px 16px; }
+  .land-hero { padding: 56px 16px 36px; }
+  .land-cards, .land-foot { padding-left: 16px; padding-right: 16px; }
+  .land-card { padding: 22px 18px 20px; }
+  .land-card h2 { font-size: 22px; }
   html, body, #root, .app { height: auto; overflow: visible; }
   .app { flex-direction: column; }
   .side {

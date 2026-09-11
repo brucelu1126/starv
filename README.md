@@ -8,7 +8,7 @@ Repo: https://github.com/brucelu1126/starv
 
 The paper is a design overview, not an implementation spec. This repo exists to **force a 7-day run** and check whether the identities in the whitepaper still hold.
 
-UI is 中 / ENG / 한. Voice tour is English (Daniel). Default mode is Sandbox.
+`/` is an English homepage: six cards walk the mechanism (holding STANDARD ≠ issuance; expanding branches burns float; the door is priced when someone exits), plus a seventh on reservations. **Launch app** opens `/app`. UI inside the app is 中 / ENG / 한. Voice tour is English. Default mode is Sandbox.
 
 ## Run it
 
@@ -22,7 +22,9 @@ Node 22+ (the check script uses type stripping). No extra env files.
 
 ## What you are looking at
 
-Three pages:
+**Landing (`/`)** — brand, short lede, six mechanism cards, reservations, link to the whitepaper. Click **Launch app** (or the brand in the app sidebar to come back).
+
+**App (`/app`)** — three pages:
 
 - **Machine** — one epoch of the bank. The only policy input is net ETH through the pool.
 - **Defence** — the exit door. Leavers pay a quadratic fee; half burns, half pays whoever stayed.
@@ -68,9 +70,11 @@ Also asserted, not on the live tape: Dutch license curve §7.1, dormant bounty �
 
 | File | What |
 | --- | --- |
+| `src/Landing.tsx` | Homepage + six mechanism cards |
 | `src/engine/formulas.ts` | The identities |
 | `src/engine/check.ts` | The asserts |
 | `src/engine/simulate.ts` | One epoch |
 | `src/engine/params.ts` | wp vs assumed knobs |
 | `src/engine/spec.ts` | Rule → section → function |
-| `src/App.tsx` | UI |
+| `src/App.tsx` | App UI |
+| `public/intro-voice.mp3` | Voice tour clip |
